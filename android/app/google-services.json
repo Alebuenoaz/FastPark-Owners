@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "455888512807",
+    "firebase_url": "https://fast-park-app.firebaseio.com",
+    "project_id": "fast-park-app",
+    "storage_bucket": "fast-park-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:455888512807:android:a6cf541167f1aae9a96b02",
+        "android_client_info": {
+          "package_name": "com.fastpark.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "455888512807-ntdhj1v9avco9g2ah01dbcfoqstokt63.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fastpark.app",
+            "certificate_hash": "842906f6bccff93bf6c8848b598f553b782987cc"
+          }
+        },
+        {
+          "client_id": "455888512807-avg8im5diggn46m3pe490osdv6rf5kcg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDel7nu2e8UeCpyjs8YOg5acCxichrzGPw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "455888512807-avg8im5diggn46m3pe490osdv6rf5kcg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
