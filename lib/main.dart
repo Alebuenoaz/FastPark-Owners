@@ -347,7 +347,7 @@ class _ParkingRegisterState extends State<ParkingRegister> {
                 ),
               ),
               Container(
-                height: 15.0,
+                height: 10.0,
               ),
               /*Center(
                 child: _image == null
@@ -359,13 +359,15 @@ class _ParkingRegisterState extends State<ParkingRegister> {
                 width: 210.0,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    //image: AssetImage("assets/insert-logo.png"),
                     image: _image == null
-                        ? AssetImage("assets/insert-logo.png")
+                        ? AssetImage("assets/insert-picture.png")
                         : FileImage(_image), // here add your image file path
                     fit: BoxFit.fill,
                   ),
                 ),
+              ),
+              Container(
+                height: 5.0,
               ),
               RaisedButton(
                 child: Text("Elegir una foto"),
