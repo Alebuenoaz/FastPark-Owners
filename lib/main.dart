@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart';
@@ -139,37 +140,10 @@ class _ParkingRegisterState extends State<ParkingRegister> {
   TextEditingController directionController = new TextEditingController();
   TextEditingController priceController = new TextEditingController();
   TextEditingController descriptionController = new TextEditingController();
+  TextEditingController phoneNumberController = new TextEditingController();
   var url;
   File _image;
   var picker = ImagePicker();
-
-  void _create(String ownerID, String ownID, String name, String direction,
-      String price, String description, BuildContext context) async {
-    try {
-      if (checkFields(
-          ownerID, ownID, name, direction, price, description, _image)) {
-        await uploadPic();
-        await firestore
-            .collection('RegistroParqueos')
-            .document('testUser')
-            .setData({
-          'CI Propietario': ownerID,
-          'CI propio': ownID,
-          'Nombre': name,
-          'Direccion': direction,
-          'Tarifa por hora': price,
-          'Descripcion': description,
-          'Imagen': url,
-        });
-        clean();
-        Navigator.of(context).pop();
-      } else {
-        _showMyDialog(context);
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
 
   Widget _buildAlertDialog(BuildContext context) {
     return AlertDialog(
@@ -194,17 +168,58 @@ class _ParkingRegisterState extends State<ParkingRegister> {
   }
 
   bool checkFields(String ownerID, String ownID, String name, String direction,
-      String price, String description, File img) {
-    if (ownerID != null &&
-        ownID != null &&
-        name != null &&
-        direction != null &&
-        price != null &&
-        description != null &&
+      String phoneNumber, String price, String description, File img) {
+    if (ownerID != "" &&
+        ownID != "" &&
+        name != "" &&
+        direction != "" &&
+        phoneNumber != "" &&
+        price != "" &&
+        description != "" &&
         img != null)
       return true;
     else
       return false;
+  }
+
+  void _create(
+      String ownerID,
+      String ownID,
+      String name,
+      String direction,
+      String phoneNumber,
+      String price,
+      String description,
+      BuildContext context) async {
+    try {
+      if (checkFields(ownerID, ownID, name, direction, phoneNumber, price,
+          description, _image)) {
+        await uploadPic();
+        await firestore
+            .collection('RegistroParqueos')
+            .document('testing2')
+            .setData({
+          'CIPropietario': int.parse(ownerID),
+          'CIPropio': int.parse(ownID),
+          'Nombre': name,
+          'Direccion': direction,
+          'Telefono': int.parse(phoneNumber),
+          'TarifaPorHora': double.parse(price),
+          'Descripcion': description,
+          'Imagen': url,
+        });
+        //Show completed action toast
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Parqueo registrado correctamente"),
+        ));
+        clean();
+        Navigator.of(context).pop();
+      } else {
+        _showMyDialog(context);
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   void _read() async {
@@ -212,7 +227,7 @@ class _ParkingRegisterState extends State<ParkingRegister> {
     try {
       documentSnapshot = await firestore
           .collection('RegistroParqueos')
-          .document('testUser')
+          .document('testing')
           .get();
       print(documentSnapshot.data);
     } catch (e) {
@@ -222,7 +237,7 @@ class _ParkingRegisterState extends State<ParkingRegister> {
 
   void _update() async {
     try {
-      firestore.collection('RegistroParqueos').document('testUser').updateData({
+      firestore.collection('RegistroParqueos').document('testing').updateData({
         'firstName': 'testUpdated',
       });
     } catch (e) {
@@ -232,7 +247,7 @@ class _ParkingRegisterState extends State<ParkingRegister> {
 
   void _delete() async {
     try {
-      firestore.collection('RegistroParqueos').document('testUser').delete();
+      firestore.collection('RegistroParqueos').document('testing').delete();
     } catch (e) {
       print(e);
     }
@@ -264,22 +279,25 @@ class _ParkingRegisterState extends State<ParkingRegister> {
   }
 
   void clean() {
-    ownerIDController.clear();
-    ownIDController.clear();
-    nameController.clear();
-    directionController.clear();
-    priceController.clear();
-    descriptionController.clear();
-    url = null;
-    _image = null;
-    picker = null;
+    setState(() {
+      ownerIDController.clear();
+      ownIDController.clear();
+      nameController.clear();
+      directionController.clear();
+      phoneNumberController.clear();
+      priceController.clear();
+      descriptionController.clear();
+      url = null;
+      _image = null;
+      picker = null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Registro de Parqueos"),
+        title: Text("Registro de Parqueo"),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -295,6 +313,11 @@ class _ParkingRegisterState extends State<ParkingRegister> {
                   border: OutlineInputBorder(),
                   labelText: 'CI dueño del parqueo',
                 ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp('[0-9]')),
+                  LengthLimitingTextInputFormatter(7)
+                ],
               ),
               Container(
                 height: 15.0,
@@ -305,6 +328,11 @@ class _ParkingRegisterState extends State<ParkingRegister> {
                   border: OutlineInputBorder(),
                   labelText: 'CI propio',
                 ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp('[0-9]')),
+                  LengthLimitingTextInputFormatter(7)
+                ],
               ),
               Container(
                 height: 15.0,
@@ -313,7 +341,7 @@ class _ParkingRegisterState extends State<ParkingRegister> {
                 controller: nameController,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: 'Nombre',
+                  labelText: 'Nombre completo',
                 ),
               ),
               Container(
@@ -330,11 +358,30 @@ class _ParkingRegisterState extends State<ParkingRegister> {
                 height: 15.0,
               ),
               TextField(
+                controller: phoneNumberController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Telefono del parqueo',
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp('[0-9]')),
+                  LengthLimitingTextInputFormatter(7)
+                ],
+              ),
+              Container(
+                height: 15.0,
+              ),
+              TextField(
                 controller: priceController,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Precio por hora (Bs)',
                 ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp('[0-9.]'))
+                ],
               ),
               Container(
                 height: 15.0,
@@ -349,11 +396,6 @@ class _ParkingRegisterState extends State<ParkingRegister> {
               Container(
                 height: 10.0,
               ),
-              /*Center(
-                child: _image == null
-                    ? Text('No image selected.')
-                    : Image.file(_image),
-              ),*/
               Container(
                 height: 210.0,
                 width: 210.0,
@@ -373,19 +415,30 @@ class _ParkingRegisterState extends State<ParkingRegister> {
                 child: Text("Elegir una foto"),
                 onPressed: getImage,
               ),
-              RaisedButton(
-                  child: Text('CREAR'),
-                  color: Colors.lightBlue,
-                  onPressed: () {
-                    _create(
-                        ownerIDController.text,
-                        ownIDController.text,
-                        nameController.text,
-                        directionController.text,
-                        priceController.text,
-                        descriptionController.text,
-                        context);
-                  }),
+              Container(
+                height: 5.0,
+              ),
+              ButtonTheme(
+                minWidth: 380.0,
+                height: 50.0,
+                child: RaisedButton(
+                    child: Text('REGISTRAR'),
+                    color: Colors.lightBlue,
+                    onPressed: () {
+                      _create(
+                          ownerIDController.text,
+                          ownIDController.text,
+                          nameController.text,
+                          directionController.text,
+                          phoneNumberController.text,
+                          priceController.text,
+                          descriptionController.text,
+                          context);
+                    }),
+              ),
+              Container(
+                height: 10.0,
+              ),
             ],
           ),
         ),
