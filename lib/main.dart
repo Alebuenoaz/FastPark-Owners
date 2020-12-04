@@ -197,7 +197,7 @@ class _ParkingRegisterState extends State<ParkingRegister> {
         await uploadPic();
         await firestore
             .collection('RegistroParqueos')
-            .document('testing')
+            .document('testing2')
             .setData({
           'CIPropietario': int.parse(ownerID),
           'CIPropio': int.parse(ownID),
@@ -415,20 +415,30 @@ class _ParkingRegisterState extends State<ParkingRegister> {
                 child: Text("Elegir una foto"),
                 onPressed: getImage,
               ),
-              RaisedButton(
-                  child: Text('CREAR'),
-                  color: Colors.lightBlue,
-                  onPressed: () {
-                    _create(
-                        ownerIDController.text,
-                        ownIDController.text,
-                        nameController.text,
-                        directionController.text,
-                        phoneNumberController.text,
-                        priceController.text,
-                        descriptionController.text,
-                        context);
-                  }),
+              Container(
+                height: 5.0,
+              ),
+              ButtonTheme(
+                minWidth: 380.0,
+                height: 50.0,
+                child: RaisedButton(
+                    child: Text('REGISTRAR'),
+                    color: Colors.lightBlue,
+                    onPressed: () {
+                      _create(
+                          ownerIDController.text,
+                          ownIDController.text,
+                          nameController.text,
+                          directionController.text,
+                          phoneNumberController.text,
+                          priceController.text,
+                          descriptionController.text,
+                          context);
+                    }),
+              ),
+              Container(
+                height: 10.0,
+              ),
             ],
           ),
         ),
