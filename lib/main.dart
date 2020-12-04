@@ -354,6 +354,17 @@ class _ParkingRegisterState extends State<ParkingRegister> {
                     ? Text('No image selected.')
                     : Image.file(_image),
               ),
+              Container(
+                height: 120.0,
+                width: 120.0,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage("assets/insert-logo.png"),
+                    fit: BoxFit.fill,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+              ),
               RaisedButton(
                 child: Text("Elegir Foto"),
                 onPressed: getImage,
