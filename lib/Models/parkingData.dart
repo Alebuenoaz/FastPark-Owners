@@ -1,12 +1,12 @@
-class parkingData {
+class ParkingData {
   String key;
   String subject;
   bool completed;
   String userId;
 
-  parkingData(this.subject, this.userId, this.completed);
+  ParkingData(this.subject, this.userId, this.completed);
 
-  /*parkingData.fromSnapshot(DataSnapshot snapshot)
+  /*ParkingData.fromSnapshot(DataSnapshot snapshot)
       : key = snapshot.key,
         userId = snapshot.value["userId"],
         subject = snapshot.value["subject"],
