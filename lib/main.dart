@@ -144,11 +144,101 @@ class _ParkingRegisterState extends State<ParkingRegister> {
   var url;
   File _image;
   var picker = ImagePicker();
+  bool _isMondaySelected = false;
+  bool _isTuesdaySelected = false;
+  bool _isWednesdaySelected = false;
+  bool _isThursdaySelected = false;
+  bool _isFridaySelected = false;
+  bool _isSaturdaySelected = false;
+  bool _isSundaySelected = false;
+  TimeOfDay startTime = TimeOfDay(hour: 00, minute: 00);
+  TimeOfDay endTime = TimeOfDay(hour: 00, minute: 00);
+  TimeOfDay startTimePicked;
+  TimeOfDay endTimePicked;
+
+  void _create(
+      String ownerID,
+      String ownID,
+      String name,
+      String direction,
+      String phoneNumber,
+      String price,
+      String description,
+      BuildContext context) async {
+    try {
+      String days = availableDays();
+      String localStartTime = getTimeFormat(startTime);
+      String localEndTime = getTimeFormat(endTime);
+      if (checkFields(ownerID, ownID, name, direction, phoneNumber, price,
+          description, days, localStartTime, localEndTime, _image)) {
+        await uploadPic();
+        await firestore
+            .collection('RegistroParqueos')
+            .document('testing2')
+            .setData({
+          'CIPropietario': int.parse(ownerID),
+          'CIPropio': int.parse(ownID),
+          'Nombre': name,
+          'Direccion': direction,
+          'Telefono': int.parse(phoneNumber),
+          'TarifaPorHora': double.parse(price),
+          'Descripcion': description,
+          'Días': days,
+          'HoraInicio': localStartTime,
+          'HoraCierre': localEndTime,
+          'Imagen': url,
+        });
+        //Show completed action toast
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Parqueo registrado correctamente"),
+        ));
+        clean();
+        Navigator.of(context).pop();
+      } else {
+        _showMyDialog(context);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void _update() async {
+    try {
+      firestore.collection('RegistroParqueos').document('testing').updateData({
+        'firstName': 'testUpdated',
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<Null> _selectStartTime(BuildContext context) async {
+    startTimePicked = await showTimePicker(
+      context: context,
+      initialTime: startTime,
+    );
+    if (startTimePicked != null)
+      setState(() {
+        startTime = startTimePicked;
+      });
+  }
+
+  Future<Null> _selectEndTime(BuildContext context) async {
+    endTimePicked = await showTimePicker(
+      context: context,
+      initialTime: endTime,
+    );
+    if (endTimePicked != null)
+      setState(() {
+        endTime = endTimePicked;
+      });
+  }
 
   Widget _buildAlertDialog(BuildContext context) {
     return AlertDialog(
       title: Text('Error'),
-      content: Text("Debe rellenar todos los espacios del formulario"),
+      content:
+          Text("Debe rellenar todos los espacios del formulario correctamente"),
       actions: [
         FlatButton(
             child: Text("Aceptar"),
@@ -167,22 +257,7 @@ class _ParkingRegisterState extends State<ParkingRegister> {
     );
   }
 
-  bool checkFields(String ownerID, String ownID, String name, String direction,
-      String phoneNumber, String price, String description, File img) {
-    if (ownerID != "" &&
-        ownID != "" &&
-        name != "" &&
-        direction != "" &&
-        phoneNumber != "" &&
-        price != "" &&
-        description != "" &&
-        img != null)
-      return true;
-    else
-      return false;
-  }
-
-  void _create(
+  bool checkFields(
       String ownerID,
       String ownID,
       String name,
@@ -190,66 +265,60 @@ class _ParkingRegisterState extends State<ParkingRegister> {
       String phoneNumber,
       String price,
       String description,
-      BuildContext context) async {
-    try {
-      if (checkFields(ownerID, ownID, name, direction, phoneNumber, price,
-          description, _image)) {
-        await uploadPic();
-        await firestore
-            .collection('RegistroParqueos')
-            .document('testing2')
-            .setData({
-          'CIPropietario': int.parse(ownerID),
-          'CIPropio': int.parse(ownID),
-          'Nombre': name,
-          'Direccion': direction,
-          'Telefono': int.parse(phoneNumber),
-          'TarifaPorHora': double.parse(price),
-          'Descripcion': description,
-          'Imagen': url,
-        });
-        //Show completed action toast
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("Parqueo registrado correctamente"),
-        ));
-        clean();
-        Navigator.of(context).pop();
-      } else {
-        _showMyDialog(context);
+      String availableDays,
+      String startHour,
+      String endHour,
+      File img) {
+    if (ownerID != "" &&
+        ownID != "" &&
+        name != "" &&
+        direction != "" &&
+        phoneNumber != "" &&
+        price != "" &&
+        description != "" &&
+        availableDays != "" &&
+        verifyHours(startHour, endHour) &&
+        img != null)
+      return true;
+    else
+      return false;
+  }
+
+  String availableDays() {
+    String days = "";
+    if (_isMondaySelected) days += "1";
+    if (_isThursdaySelected) days += "2";
+    if (_isWednesdaySelected) days += "3";
+    if (_isTuesdaySelected) days += "4";
+    if (_isFridaySelected) days += "5";
+    if (_isSaturdaySelected) days += "6";
+    if (_isSundaySelected) days += "7";
+    return days;
+  }
+
+  String getTimeFormat(TimeOfDay time) {
+    String timeHourString = (time.hour).toString();
+    String timeMinuteString = (time.minute).toString();
+
+    if (timeMinuteString.length == 1) {
+      if (timeMinuteString == '0')
+        timeMinuteString += '0';
+      else {
+        timeMinuteString = '0' + timeMinuteString;
       }
-    } catch (e) {
-      print(e);
     }
+    return "$timeHourString:$timeMinuteString";
   }
 
-  void _read() async {
-    DocumentSnapshot documentSnapshot;
-    try {
-      documentSnapshot = await firestore
-          .collection('RegistroParqueos')
-          .document('testing')
-          .get();
-      print(documentSnapshot.data);
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  void _update() async {
-    try {
-      firestore.collection('RegistroParqueos').document('testing').updateData({
-        'firstName': 'testUpdated',
-      });
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  void _delete() async {
-    try {
-      firestore.collection('RegistroParqueos').document('testing').delete();
-    } catch (e) {
-      print(e);
+  bool verifyHours(String startTimeString, String endTimeString) {
+    int initialHour = int.parse(
+        startTimeString.split(":")[0] + startTimeString.split(":")[1]);
+    int finalHour =
+        int.parse(endTimeString.split(":")[0] + endTimeString.split(":")[1]);
+    if (initialHour < finalHour) {
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -270,7 +339,6 @@ class _ParkingRegisterState extends State<ParkingRegister> {
     StorageReference firebaseStorageRef =
         FirebaseStorage.instance.ref().child(fileName);
     StorageUploadTask uploadTask = firebaseStorageRef.putFile(_image);
-    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
 
     var dowurl = await (await uploadTask.onComplete).ref.getDownloadURL();
     url = dowurl.toString();
@@ -291,6 +359,109 @@ class _ParkingRegisterState extends State<ParkingRegister> {
       _image = null;
       picker = null;
     });
+  }
+
+  Future createDayPickDialog(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Elegir días hábiles'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    CheckboxListTile(
+                      title: Text("Lunes"),
+                      secondary: Icon(Icons.today_outlined),
+                      controlAffinity: ListTileControlAffinity.platform,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _isMondaySelected = value;
+                        });
+                      },
+                      value: _isMondaySelected,
+                    ),
+                    CheckboxListTile(
+                      title: Text("Martes"),
+                      secondary: Icon(Icons.today_outlined),
+                      controlAffinity: ListTileControlAffinity.platform,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _isTuesdaySelected = value;
+                        });
+                      },
+                      value: _isTuesdaySelected,
+                    ),
+                    CheckboxListTile(
+                      title: Text("Miercoles"),
+                      secondary: Icon(Icons.today_outlined),
+                      controlAffinity: ListTileControlAffinity.platform,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _isWednesdaySelected = value;
+                        });
+                      },
+                      value: _isWednesdaySelected,
+                    ),
+                    CheckboxListTile(
+                      title: Text("Jueves"),
+                      secondary: Icon(Icons.today_outlined),
+                      controlAffinity: ListTileControlAffinity.platform,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _isThursdaySelected = value;
+                        });
+                      },
+                      value: _isThursdaySelected,
+                    ),
+                    CheckboxListTile(
+                      title: Text("Viernes"),
+                      secondary: Icon(Icons.today_outlined),
+                      controlAffinity: ListTileControlAffinity.platform,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _isFridaySelected = value;
+                        });
+                      },
+                      value: _isFridaySelected,
+                    ),
+                    CheckboxListTile(
+                      title: Text("Sábado"),
+                      secondary: Icon(Icons.today_outlined),
+                      controlAffinity: ListTileControlAffinity.platform,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _isSaturdaySelected = value;
+                        });
+                      },
+                      value: _isSaturdaySelected,
+                    ),
+                    CheckboxListTile(
+                      title: Text("Domingo"),
+                      secondary: Icon(Icons.today_outlined),
+                      controlAffinity: ListTileControlAffinity.platform,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _isSundaySelected = value;
+                        });
+                      },
+                      value: _isSundaySelected,
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                MaterialButton(
+                  child: Text("Aceptar"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          });
+        });
   }
 
   @override
@@ -395,6 +566,48 @@ class _ParkingRegisterState extends State<ParkingRegister> {
               ),
               Container(
                 height: 10.0,
+              ),
+              ButtonTheme(
+                minWidth: 380.0,
+                height: 50.0,
+                child: RaisedButton(
+                    child: Text('Elegir Días de Atención'),
+                    color: Colors.lightBlue[100],
+                    onPressed: () {
+                      createDayPickDialog(context);
+                    }),
+              ),
+              Container(
+                height: 10.0,
+              ),
+              Text('Horario de atención:'),
+              new Container(
+                child: new Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    IconButton(
+                      icon: Icon(Icons.alarm),
+                      iconSize: 50,
+                      onPressed: () {
+                        _selectStartTime(context);
+                      },
+                    ),
+                    Text('Desde ${startTime.hour}:${startTime.minute}',
+                        style: TextStyle(fontSize: 17)),
+                    Container(
+                      width: 35,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.alarm),
+                      iconSize: 50,
+                      onPressed: () {
+                        _selectEndTime(context);
+                      },
+                    ),
+                    Text('Hasta ${endTime.hour}:${endTime.minute}',
+                        style: TextStyle(fontSize: 17)),
+                  ],
+                ),
               ),
               Container(
                 height: 210.0,
