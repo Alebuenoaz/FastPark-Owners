@@ -1,113 +1,90 @@
+import 'package:fast_park/blocs/autenticacion.dart';
+import 'package:fast_park/design/colores.dart';
+import 'package:fast_park/design/textosDes.dart';
+import 'package:fast_park/pantallas/homeFP.dart';
+import 'package:fast_park/pantallas/loginFP.dart';
+import 'package:fast_park/servicios/rutas.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
+import 'package:provider/provider.dart';
 
+final autenticacion = Autenticacion();
 void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
+  _MyAppState createState() => _MyAppState();
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
+class _MyAppState extends State<MyApp> {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  final databaseReference = Firestore.instance;
-  int _counter = 0;
-
-  void _createRecord() async {
-    _counter++;
-    await databaseReference.collection("parqueos")
-      .document("1")
-      .setData({
-        'title': 'Chupate esa Drope',
-        'description': 'Parece que funciona Firebase'
-      });
-
-    DocumentReference ref = await databaseReference.collection("parqueos")
-      .add({
-        'title': 'parqueo'+ _counter.toString(),
-        'description': 'Descripcion del parqueo nro '+ _counter.toString()
-      });
-    print(ref.documentID);
-  }
-
-  void _getData() {
-  databaseReference
-      .collection("parqueos")
-      .getDocuments()
-      .then((QuerySnapshot snapshot) {
-    snapshot.documents.forEach((f) => print('${f.data}}'));
-    });
-  }
-
-  void _updateData() {
-    try {
-      databaseReference
-        .collection('parqueos')
-        .document('1')
-        .updateData({'description': 'Seguila chupando Drope'});
-    } catch (e) {
-      print(e.toString());
-    }
-  }
-
-  void _deleteData() {
-    try {
-      databaseReference
-        .collection('parqueos')
-        .document('1')
-        .delete();
-    } catch (e) {
-      print(e.toString());
-    }
+  Widget build(BuildContext context) {
+    return MultiProvider(providers: [
+      Provider(create: (context) => autenticacion),
+      FutureProvider(
+        create: (context) => autenticacion.isLoggedIn(),
+      )
+    ], child: Plataformas());
   }
 
   @override
+  void dispose() {
+    autenticacion.dispose();
+    super.dispose();
+  }
+}
+
+class Plataformas extends StatelessWidget {
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('FireStore Demo'),
-      ),
-      body: Center(
-          child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          RaisedButton(
-            child: Text('Create'),
-            onPressed: _createRecord,
+    var isLoggedIn = Provider.of<bool>(context);
+
+    if (Platform.isIOS) {
+      return CupertinoApp(
+        title: 'FastPark!',
+        home: (isLoggedIn == null)
+            ? cargando(false)
+            : (isLoggedIn == true)
+                ? HomeFP()
+                : Login(),
+        onGenerateRoute: Rutas.materialRoutes,
+        theme: CupertinoThemeData(
+          primaryColor: ColoresApp.naranja,
+          scaffoldBackgroundColor: Colors.white,
+          textTheme: CupertinoTextThemeData(
+            tabLabelTextStyle: TextosDes.suggestion,
           ),
-          RaisedButton(
-            child: Text('Read'),
-            onPressed: _getData,
-          ),
-          RaisedButton(
-            child: Text('Update'),
-            onPressed: _updateData,
-          ),
-          RaisedButton(
-            child: Text('Delete'),
-            onPressed: _deleteData,
-          ),
-        ],
-      )), //center
-    );
+          //brightness: Brightness.dark
+        ),
+      );
+    } else {
+      return MaterialApp(
+          title: 'FastPark!',
+          home: (isLoggedIn == null)
+              ? cargando(false)
+              : (isLoggedIn == true)
+                  ? HomeFP()
+                  : Login(),
+          onGenerateRoute: Rutas.materialRoutes,
+          theme: ThemeData(scaffoldBackgroundColor: Colors.white));
+    }
+  }
+
+  Widget cargando(bool isIOS) {
+    return (isIOS)
+        ? CupertinoPageScaffold(
+            child: Center(
+              child: CupertinoActivityIndicator(),
+            ),
+          )
+        : Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
   }
 }

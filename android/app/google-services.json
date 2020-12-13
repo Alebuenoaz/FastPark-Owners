@@ -38,6 +38,13 @@
             {
               "client_id": "455888512807-avg8im5diggn46m3pe490osdv6rf5kcg.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "455888512807-0n3k083boisrem1njjcnvrcthgps5if7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.fastpark.app"
+              }
             }
           ]
         }

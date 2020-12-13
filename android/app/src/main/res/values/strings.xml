@@ -1,0 +1,7 @@
+<resource>
+<string name="app_name"> FastPark!</string>
+<string name="facebook_app_id">391117701944336</string>
+ <string name="fb_login_protocol_scheme">fb391117701944336</string>
+</resource>
+
+
